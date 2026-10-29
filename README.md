@@ -1,5 +1,7 @@
 # pg-fail-closed-tenancy
 
+[![ci](https://github.com/ncardonab/pg-fail-closed-tenancy/actions/workflows/ci.yml/badge.svg)](https://github.com/ncardonab/pg-fail-closed-tenancy/actions/workflows/ci.yml)
+
 Postgres row-level security that fails closed, an append-only audit trail, and an integration test suite that proves both while connected as the real application role.
 
 ## The problem
