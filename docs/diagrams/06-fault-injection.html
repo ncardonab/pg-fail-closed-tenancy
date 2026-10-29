@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Killing the connection mid-transaction</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;   /* white-smoke */
+      --color-ink:     #2d3142;   /* jet-black */
+      --color-muted:   #4f5d75;   /* blue-slate */
+      --color-accent:  #bf4520;   /* burnt-tangerine */
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1280px; width: 100%; min-width: 0; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+
+    .caption {
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--color-muted);
+      max-width: 720px;
+      margin-top: 1.25rem;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Step 6 of 7 · Sequence</p>
+    <h1>Killing the connection mid-transaction</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 880" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="fault-injection-title fault-injection-desc">
+        <title id="fault-injection-title">Killing the connection mid-transaction</title>
+        <desc id="fault-injection-desc">Sequence diagram of the fault-injection test: an admin connection terminates the app connection after the UPDATE and its audit row are written but before COMMIT, so withTenant rejects, neither the change nor its audit row is saved, and the pool serves the next transaction on a fresh connection.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bf4520"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+          <!-- Open arrowhead: async, unsolicited server message -->
+          <marker id="arrow-open" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polyline points="0 0, 8 3, 0 6" fill="none" stroke="#4f5d75" stroke-width="1.2"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+        
+        <!-- LIFELINES (behind everything). Centres: Test 128, withTenant 472, Postgres 816, Admin 1160 -->
+        <line x1="128" y1="96" x2="128" y2="784" stroke="rgba(45,49,66,0.22)" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="472" y1="96" x2="472" y2="784" stroke="rgba(45,49,66,0.22)" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="816" y1="96" x2="816" y2="784" stroke="rgba(45,49,66,0.22)" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="1160" y1="96" x2="1160" y2="784" stroke="rgba(45,49,66,0.22)" stroke-width="1" stroke-dasharray="3,3"/>
+        
+        <!-- ACTIVATION BARS (before messages, so arrows land on their edges) -->
+        <rect x="468" y="136" width="8" height="476" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+        <rect x="812" y="192" width="8" height="308" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+        <rect x="1156" y="372" width="8" height="72" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+        <rect x="1156" y="664" width="8" height="32" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+        <rect x="468" y="732" width="8" height="32" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+        
+        <!-- MESSAGES: time flows top to bottom. Arrows first, then label masks. -->
+        <!-- M1: RUN AS ORG A -->
+        <line x1="128" y1="144" x2="468" y2="144" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <!-- M2: BEGIN, CONTEXT -->
+        <line x1="476" y1="200" x2="812" y2="200" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <!-- M3: UPDATE -->
+        <line x1="476" y1="256" x2="812" y2="256" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <!-- M4: GET PID -->
+        <line x1="476" y1="324" x2="812" y2="324" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <!-- M5: TERMINATE -->
+        <line x1="128" y1="380" x2="1156" y2="380" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <!-- M6: KILL BACKEND -->
+        <line x1="1156" y1="436" x2="820" y2="436" stroke="#bf4520" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+        <!-- M7: FATAL, CLOSED -->
+        <line x1="812" y1="492" x2="476" y2="492" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow-open)"/>
+        <!-- M8: COMMIT FAILS -->
+        <line x1="476" y1="548" x2="816" y2="548" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <!-- M9: REJECTS -->
+        <line x1="468" y1="604" x2="128" y2="604" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+        <!-- M10: CHECK STATE -->
+        <line x1="128" y1="672" x2="1156" y2="672" stroke="#bf4520" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+        <!-- M11: NEW TX -->
+        <line x1="128" y1="740" x2="468" y2="740" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="256" y="124" width="84" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="298" y="133" fill="#4f5d75" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">RUN AS ORG A</text>
+        <text x="298" y="161" fill="#5a6580" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">claimsFor(orgA, 'user-ana')</text>
+        <rect x="596" y="180" width="96" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="644" y="189" fill="#4f5d75" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">BEGIN, CONTEXT</text>
+        <text x="644" y="217" fill="#5a6580" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">set_config(…, true): app.org_id, app.user_id</text>
+        <rect x="616" y="236" width="52" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="642" y="245" fill="#4f5d75" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">UPDATE</text>
+        <text x="642" y="273" fill="#5a6580" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">contacts SET consent = 'opted_out'</text>
+        <text x="642" y="285" fill="#5a6580" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">trigger adds audit row; not committed yet</text>
+        <rect x="616" y="304" width="56" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="644" y="313" fill="#4f5d75" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">GET PID</text>
+        <text x="644" y="341" fill="#5a6580" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">SELECT pg_backend_pid()</text>
+        <rect x="952" y="360" width="68" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="986" y="369" fill="#4f5d75" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">TERMINATE</text>
+        <text x="986" y="397" fill="#5a6580" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">pg_terminate_backend(pid, 5000)</text>
+        <rect x="944" y="416" width="84" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="986" y="425" fill="#bf4520" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">KILL BACKEND</text>
+        <text x="986" y="453" fill="#5a6580" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">waits up to 5000 ms for the exit</text>
+        <rect x="600" y="472" width="92" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="646" y="481" fill="#4f5d75" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">FATAL, CLOSED</text>
+        <text x="646" y="509" fill="#5a6580" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">client.on('error', markBroken): broken = true</text>
+        <rect x="600" y="528" width="84" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="642" y="537" fill="#4f5d75" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">COMMIT FAILS</text>
+        <text x="642" y="565" fill="#5a6580" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">rejects; ROLLBACK fails too, .catch(markBroken)</text>
+        <rect x="272" y="584" width="56" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="300" y="593" fill="#4f5d75" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">REJECTS</text>
+        <text x="300" y="621" fill="#5a6580" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">release(broken): pool drops the dead client</text>
+        <text x="300" y="633" fill="#5a6580" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">toThrow(/terminat|not queryable/i)</text>
+        <rect x="948" y="652" width="80" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="988" y="661" fill="#bf4520" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">CHECK STATE</text>
+        <text x="988" y="689" fill="#2d3142" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">consent still 'opted_in'</text>
+        <text x="988" y="701" fill="#2d3142" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">audit_log: only the INSERT row</text>
+        <rect x="272" y="720" width="52" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="298" y="729" fill="#4f5d75" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">NEW TX</text>
+        <text x="298" y="757" fill="#5a6580" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">fresh connection: count(*) = 1, pool recovered</text>
+        
+        <!-- ACTORS: drawn after arrows and labels -->
+        <!-- Test -->
+        <rect x="48" y="40" width="160" height="56" rx="6" fill="#f5f5f5"/>
+        <rect x="48" y="40" width="160" height="56" rx="6" fill="rgba(79,93,117,0.10)" stroke="#5a6580" stroke-width="1"/>
+        <rect x="56" y="48" width="28" height="12" rx="2" fill="transparent" stroke="rgba(90,101,128,0.40)" stroke-width="0.8"/>
+        <text x="70" y="57" fill="#5a6580" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">TEST</text>
+        <text x="128" y="72" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">Test</text>
+        <text x="128" y="87" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">audit.test.ts</text>
+        <!-- withTenant -->
+        <rect x="392" y="40" width="160" height="56" rx="6" fill="#f5f5f5"/>
+        <rect x="392" y="40" width="160" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="400" y="48" width="24" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.30)" stroke-width="0.8"/>
+        <text x="412" y="57" fill="#4f5d75" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">APP</text>
+        <text x="472" y="72" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">withTenant</text>
+        <text x="472" y="87" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">app_user, pool max 1</text>
+        <!-- Postgres backend -->
+        <rect x="736" y="40" width="160" height="56" rx="6" fill="#f5f5f5"/>
+        <rect x="736" y="40" width="160" height="56" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+        <rect x="744" y="48" width="24" height="12" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+        <text x="756" y="57" fill="#4f5d75" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">DB</text>
+        <text x="816" y="72" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">Postgres backend</text>
+        <text x="816" y="87" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">contacts, audit_log</text>
+        <!-- Admin connection -->
+        <rect x="1080" y="40" width="160" height="56" rx="6" fill="#f5f5f5"/>
+        <rect x="1080" y="40" width="160" height="56" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+        <rect x="1088" y="48" width="24" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.22)" stroke-width="0.8"/>
+        <text x="1100" y="57" fill="#5a6580" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">SU</text>
+        <text x="1160" y="72" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">Admin connection</text>
+        <text x="1160" y="87" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">superuser, adminPool()</text>
+        
+        <!-- LEGEND: horizontal strip at the bottom -->
+        <line x1="48" y1="812" x2="1240" y2="812" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+        <text x="48" y="828" fill="#4f5d75" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" letter-spacing="0.18em">LEGEND</text>
+        <line x1="48" y1="848" x2="76" y2="848" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <text x="84" y="851" fill="#4f5d75" font-size="8.5" font-family="'Geist', system-ui, sans-serif">Call</text>
+        <line x1="140" y1="848" x2="168" y2="848" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+        <text x="176" y="851" fill="#4f5d75" font-size="8.5" font-family="'Geist', system-ui, sans-serif">Return</text>
+        <line x1="240" y1="848" x2="268" y2="848" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow-open)"/>
+        <text x="276" y="851" fill="#4f5d75" font-size="8.5" font-family="'Geist', system-ui, sans-serif">Async event from the server</text>
+        <line x1="436" y1="848" x2="464" y2="848" stroke="#bf4520" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+        <text x="472" y="851" fill="#4f5d75" font-size="8.5" font-family="'Geist', system-ui, sans-serif">Injected fault and its result</text>
+        <rect x="640" y="840" width="4" height="16" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+        <text x="652" y="851" fill="#4f5d75" font-size="8.5" font-family="'Geist', system-ui, sans-serif">Activation</text>
+        <text x="736" y="851" fill="#5a6580" font-size="9" font-family="'Geist Mono', ui-monospace, monospace">fn()</text>
+        <text x="768" y="851" fill="#4f5d75" font-size="8.5" font-family="'Geist', system-ui, sans-serif">Code and values from the repo</text>
+      </svg>
+    </div>
+
+    <p class="caption">The test kills the app connection after the UPDATE and its trigger-written audit row, but before COMMIT. Because both live in the same open transaction, Postgres keeps neither: the contact is still opted_in and only the original INSERT audit row exists. The error listener marks the dead client as broken, so the pool throws it away and the next transaction gets a fresh connection that works.</p>
+  </div>
+</body>
+</html>

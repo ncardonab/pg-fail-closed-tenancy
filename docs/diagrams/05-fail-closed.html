@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Every failure ends in no</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;   /* white-smoke */
+      --color-ink:     #2d3142;   /* jet-black */
+      --color-muted:   #4f5d75;   /* blue-slate */
+      --color-accent:  #bf4520;   /* burnt-tangerine */
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1280px; width: 100%; min-width: 0; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+
+    .caption {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--color-muted);
+      max-width: 720px;
+      margin-top: 1.25rem;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above - a media
+       query adds no specificity, so a later plain rule would win. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Step 5 of 7 · Flowchart</p>
+    <h1>Every failure ends in no</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="fail-closed-title fail-closed-desc">
+        <title id="fail-closed-title">Every failure ends in no</title>
+        <desc id="fail-closed-desc">Flowchart of the four checks a tenant request passes in order (verified token, row matches current_org_id(), author named in app.user_id, COMMIT reached), where any failure ends in a rejection or a rollback and only full success saves the change together with its audit row.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bf4520"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+        <!-- ============ Arrows (drawn first, behind nodes) ============ -->
+        <!-- YES: down the main column -->
+        <line x1="440" y1="152" x2="440" y2="192" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="440" y1="304" x2="440" y2="344" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="440" y1="456" x2="440" y2="496" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="440" y1="608" x2="440" y2="648" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <!-- NO: out to the right of each decision -->
+        <line x1="600" y1="96" x2="760" y2="96" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="600" y1="248" x2="760" y2="248" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="600" y1="400" x2="760" y2="400" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="600" y1="552" x2="760" y2="552" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- ============ Arrow labels (masked, 8px clear of the stroke) ============ -->
+        <rect x="448" y="166" width="32" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="464" y="175" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">YES</text>
+        <rect x="448" y="318" width="32" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="464" y="327" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">YES</text>
+        <rect x="448" y="470" width="32" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="464" y="479" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">YES</text>
+        <rect x="448" y="622" width="32" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="464" y="631" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">YES</text>
+
+        <rect x="668" y="76" width="24" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="680" y="85" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">NO</text>
+        <rect x="668" y="228" width="24" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="680" y="237" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">NO</text>
+        <rect x="668" y="380" width="24" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="680" y="389" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">NO</text>
+        <rect x="668" y="532" width="24" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="680" y="541" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">NO</text>
+
+        <!-- ============ Decisions (main column, cx = 440) ============ -->
+        <!-- 1. Token verified? -->
+        <polygon points="440,40 600,96 440,152 280,96" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <text x="440" y="86" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Token verified?</text>
+        <text x="440" y="102" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">signature, expiry, HS256 only,</text>
+        <text x="440" y="114" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">claims shape via Zod</text>
+
+        <!-- 2. Row in current_org_id()? (focal: the RLS check) -->
+        <polygon points="440,192 600,248 440,304 280,248" fill="#f5f5f5"/>
+        <polygon points="440,192 600,248 440,304 280,248" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1.2"/>
+        <text x="440" y="238" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Row in current_org_id()?</text>
+        <text x="440" y="254" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">NULL when app.org_id is unset,</text>
+        <text x="440" y="266" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">and NULL never matches</text>
+
+        <!-- 3. Author named? -->
+        <polygon points="440,344 600,400 440,456 280,400" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <text x="440" y="396" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Author named?</text>
+        <text x="440" y="412" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">app.user_id</text>
+
+        <!-- 4. COMMIT reached? -->
+        <polygon points="440,496 600,552 440,608 280,552" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <text x="440" y="548" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">COMMIT reached?</text>
+        <text x="440" y="564" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">connection still alive</text>
+
+        <!-- ============ "No" outcomes (end ovals, one plain treatment) ============ -->
+        <rect x="760" y="68" width="240" height="56" rx="20" fill="#f5f5f5"/>
+        <rect x="760" y="68" width="240" height="56" rx="20" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+        <text x="880" y="92" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Rejected before any query</text>
+        <text x="880" y="108" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">verifyTenantToken throws</text>
+
+        <rect x="760" y="220" width="240" height="56" rx="20" fill="#f5f5f5"/>
+        <rect x="760" y="220" width="240" height="56" rx="20" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+        <text x="880" y="244" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Row invisible, write rejected</text>
+        <text x="880" y="260" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">USING hides it, WITH CHECK blocks it</text>
+
+        <rect x="760" y="372" width="240" height="56" rx="20" fill="#f5f5f5"/>
+        <rect x="760" y="372" width="240" height="56" rx="20" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+        <text x="880" y="396" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Write refused</text>
+        <text x="880" y="412" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">unaudited write on contacts</text>
+
+        <rect x="760" y="524" width="240" height="56" rx="20" fill="#f5f5f5"/>
+        <rect x="760" y="524" width="240" height="56" rx="20" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+        <text x="880" y="548" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Rolled back</text>
+        <text x="880" y="564" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">change and audit row both gone</text>
+
+        <!-- ============ The one success (end oval, solid ink) ============ -->
+        <rect x="320" y="648" width="240" height="56" rx="20" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+        <text x="440" y="672" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Saved together</text>
+        <text x="440" y="688" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">change + its audit row</text>
+
+        <!-- ============ Legend (bottom strip) ============ -->
+        <line x1="40" y1="740" x2="1240" y2="740" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+        <text x="40" y="756" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND · SHAPE CARRIES TYPE</text>
+
+        <polygon points="40,774 52,768 64,774 52,780" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <text x="72" y="777" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Decision (diamond)</text>
+
+        <polygon points="216,774 228,768 240,774 228,780" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1"/>
+        <text x="248" y="777" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Focal check: row-level security</text>
+
+        <rect x="448" y="768" width="24" height="12" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+        <text x="480" y="777" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Fails closed: refused or rolled back</text>
+
+        <rect x="704" y="768" width="24" height="12" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+        <text x="736" y="777" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">The only success: everything saved</text>
+      </svg>
+    </div>
+
+    <p class="caption">A request has to clear four checks in order: a verified token, a row that belongs to the organization set for this transaction, a named author for the audit trail, and a transaction that actually reaches COMMIT. When any check fails, or the value it needs is missing, the request stops with a refusal or a rollback instead of a partial save. The only path to yes runs straight down the column, and it always saves the change and its audit row together.</p>
+  </div>
+</body>
+</html>

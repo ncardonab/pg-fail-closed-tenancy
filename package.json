@@ -1,0 +1,32 @@
+{
+  "name": "pg-fail-closed-tenancy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Fail-closed Postgres row-level security with an append-only audit trail, tested as the production role.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "db:reset": "node scripts/db-reset.ts",
+    "whoami": "node scripts/whoami.ts",
+    "test": "vitest run",
+    "test:as-superuser": "APP_DATABASE_URL=postgres://postgres:postgres@localhost:5433/tenancy vitest run",
+    "typecheck": "tsc",
+    "security": "bash scripts/security-gate.sh"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^26.6.6",
+    "@types/pg": "^8.23.1",
+    "node-pg-migrate": "^9.0.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

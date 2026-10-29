@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How the suite proves itself, locally and in CI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;   /* white-smoke */
+      --color-ink:     #2d3142;   /* jet-black */
+      --color-muted:   #4f5d75;   /* blue-slate */
+      --color-accent:  #bf4520;   /* burnt-tangerine */
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1280px; width: 100%; min-width: 0; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+
+    .caption {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      line-height: 1.55;
+      color: var(--color-muted);
+      max-width: 720px;
+      margin-top: 1.25rem;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above - a media
+       query adds no specificity, so a later plain rule would win. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Step 7 of 7 · Process</p>
+    <h1>How the suite proves itself, locally and in CI</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="tests-and-ci-title tests-and-ci-desc">
+        <title id="tests-and-ci-title">How the suite proves itself, locally and in CI</title>
+        <desc id="tests-and-ci-desc">Process diagram of the test suite: npm test rebuilds the database, a role guard then either refuses to run or lets three test files with 19 tests run in parallel, and CI runs the same suite, reruns it as a superuser that must be refused, and runs a separate security gate.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bf4520"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+        <!-- Zones (painted first, so labels and nodes sit on top) -->
+        <!-- Zone: global setup (nodes 2, 3, 4) -->
+        <rect x="264" y="108" width="584" height="284" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.14)" stroke-width="0.8"/>
+        <text x="280" y="126" fill="#5a6580" font-size="8" font-weight="500" font-family="'Geist Mono', monospace" letter-spacing="0.14em">GLOBAL SETUP: ONCE, BEFORE ANY TEST FILE</text>
+
+        <!-- Zone: CI workflow (nodes 8, 9) -->
+        <rect x="40" y="440" width="1200" height="168" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.14)" stroke-width="0.8"/>
+        <text x="56" y="458" fill="#2d3142" font-size="8" font-weight="500" font-family="'Geist Mono', monospace" letter-spacing="0.14em">CI WORKFLOW</text>
+        <text x="56" y="471" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">PUSH TO MAIN OR PR</text>
+
+        <!-- Column heading over the three test files -->
+        <text x="976" y="60" fill="#5a6580" font-size="8" font-weight="500" font-family="'Geist Mono', monospace" letter-spacing="0.14em">19 TESTS IN 3 FILES, RUN IN PARALLEL</text>
+
+        <!-- Arrows (drawn before nodes) -->
+        <!-- 1 npm test -> 2 rebuild -->
+        <line x1="224" y1="192" x2="288" y2="192" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <!-- 2 rebuild -> 3 guard -->
+        <line x1="488" y1="192" x2="584" y2="192" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <!-- 3 guard -> fork (pass) -->
+        <line x1="824" y1="192" x2="928" y2="192" stroke="#4f5d75" stroke-width="1.2"/>
+        <!-- fork -> test files, in parallel -->
+        <path d="M 928,192 V 112 Q 928,104 936,104 H 976" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="928" y1="192" x2="976" y2="192" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 928,192 V 272 Q 928,280 936,280 H 976" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <!-- 3 guard -> 4 refuse (fail) -->
+        <line x1="704" y1="232" x2="704" y2="288" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <!-- 8 CI tests job -> 1 npm test -->
+        <line x1="200" y1="488" x2="200" y2="232" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <!-- 8 CI tests job, superuser rerun -> 4 refuse (accent) -->
+        <path d="M 304,564 H 696 Q 704,564 704,556 V 368" fill="none" stroke="#bf4520" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+
+        <!-- Arrow labels (opaque masks in the colour of the surface they sit on, 8px gap from the stroke) -->
+        <rect x="868" y="172" width="40" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="888" y="181" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PASS</text>
+
+        <rect x="712" y="254" width="40" height="12" rx="2" fill="#f1f1f1"/>
+        <text x="732" y="263" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">FAIL</text>
+
+        <rect x="108" y="330" width="84" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="150" y="339" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">RUNS NPM TEST</text>
+
+        <rect x="460" y="544" width="80" height="12" rx="2" fill="#f1f1f1"/>
+        <text x="500" y="553" fill="#bf4520" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">AS SUPERUSER</text>
+
+        <!-- Node 1: npm test (input) -->
+        <rect x="64" y="152" width="160" height="80" rx="6" fill="#f5f5f5"/>
+        <rect x="64" y="152" width="160" height="80" rx="6" fill="rgba(79,93,117,0.10)" stroke="#5a6580" stroke-width="1"/>
+        <rect x="72" y="160" width="28" height="12" rx="2" fill="transparent" stroke="rgba(90,101,128,0.40)" stroke-width="0.8"/>
+        <text x="86" y="169" fill="#5a6580" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CMD</text>
+        <text x="144" y="190" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">npm test</text>
+        <text x="144" y="206" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">vitest run</text>
+        <text x="144" y="219" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">connects as app_user</text>
+
+        <!-- Node 2: Rebuild database -->
+        <rect x="288" y="152" width="200" height="80" rx="6" fill="#f5f5f5"/>
+        <rect x="288" y="152" width="200" height="80" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="296" y="160" width="36" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+        <text x="314" y="169" fill="rgba(45,49,66,0.8)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SETUP</text>
+        <text x="388" y="190" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Rebuild database</text>
+        <text x="388" y="206" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">roles.sql, drop + create db</text>
+        <text x="388" y="219" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">migrations, seed Org A, Org B</text>
+
+        <!-- Node 3: Role guard (focal) -->
+        <rect x="584" y="152" width="240" height="80" rx="6" fill="#f5f5f5"/>
+        <rect x="584" y="152" width="240" height="80" rx="6" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1.2"/>
+        <rect x="592" y="160" width="36" height="12" rx="2" fill="transparent" stroke="rgba(191,69,32,0.50)" stroke-width="0.8"/>
+        <text x="610" y="169" fill="#bf4520" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">GUARD</text>
+        <text x="704" y="190" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Role guard</text>
+        <text x="704" y="206" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">superuser? BYPASSRLS?</text>
+        <text x="704" y="219" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">owns objects in public?</text>
+
+        <!-- Node 4: Refuse to run -->
+        <rect x="604" y="288" width="200" height="80" rx="6" fill="#f5f5f5"/>
+        <rect x="604" y="288" width="200" height="80" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="612" y="296" width="32" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+        <text x="628" y="305" fill="rgba(45,49,66,0.8)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">EXIT</text>
+        <text x="704" y="326" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Refuse to run</text>
+        <text x="704" y="342" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">"Refusing to run: ..."</text>
+        <text x="704" y="355" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">exit 1, no test file runs</text>
+
+        <!-- Node 5: isolation.test.ts -->
+        <rect x="976" y="72" width="240" height="64" rx="6" fill="#f5f5f5"/>
+        <rect x="976" y="72" width="240" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="984" y="80" width="32" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+        <text x="1000" y="89" fill="rgba(45,49,66,0.8)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TEST</text>
+        <text x="1096" y="108" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">isolation.test.ts</text>
+        <text x="1096" y="123" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">4 tests: no cross-tenant access</text>
+
+        <!-- Node 6: fail-closed.test.ts -->
+        <rect x="976" y="160" width="240" height="64" rx="6" fill="#f5f5f5"/>
+        <rect x="976" y="160" width="240" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="984" y="168" width="32" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+        <text x="1000" y="177" fill="rgba(45,49,66,0.8)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TEST</text>
+        <text x="1096" y="196" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">fail-closed.test.ts</text>
+        <text x="1096" y="211" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">9 tests: no tenant, bad tokens</text>
+
+        <!-- Node 7: audit.test.ts -->
+        <rect x="976" y="248" width="240" height="64" rx="6" fill="#f5f5f5"/>
+        <rect x="976" y="248" width="240" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="984" y="256" width="32" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+        <text x="1000" y="265" fill="rgba(45,49,66,0.8)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TEST</text>
+        <text x="1096" y="284" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">audit.test.ts</text>
+        <text x="1096" y="299" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">6 tests: append-only audit trail</text>
+
+        <!-- Node 8: CI job, tests against real Postgres (external) -->
+        <rect x="64" y="488" width="240" height="96" rx="6" fill="#f5f5f5"/>
+        <rect x="64" y="488" width="240" height="96" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+        <rect x="72" y="496" width="28" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.22)" stroke-width="0.8"/>
+        <text x="86" y="505" fill="#5a6580" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">JOB</text>
+        <text x="184" y="526" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">tests against real Postgres</text>
+        <text x="184" y="542" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Postgres 17 service, port 5433</text>
+        <text x="184" y="555" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">npm ci, typecheck, npm test</text>
+        <text x="184" y="568" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">superuser run must fail</text>
+
+        <!-- Node 9: CI job, security gate (external) -->
+        <rect x="976" y="488" width="240" height="96" rx="6" fill="#f5f5f5"/>
+        <rect x="976" y="488" width="240" height="96" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+        <rect x="984" y="496" width="28" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.22)" stroke-width="0.8"/>
+        <text x="998" y="505" fill="#5a6580" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">JOB</text>
+        <text x="1096" y="526" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">security gate</text>
+        <text x="1096" y="542" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">gitleaks, full git history</text>
+        <text x="1096" y="555" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">opengrep, bundled rules</text>
+        <text x="1096" y="568" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">osv-scanner, lockfile</text>
+
+        <!-- Fork point: the three test files start together -->
+        <circle cx="928" cy="192" r="4" fill="#2d3142"/>
+
+        <!-- Legend (bottom strip) -->
+        <line x1="40" y1="640" x2="1240" y2="640" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+        <text x="40" y="675" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+        <rect x="128" y="666" width="24" height="12" rx="2" fill="rgba(79,93,117,0.10)" stroke="#5a6580" stroke-width="1"/>
+        <text x="160" y="675" fill="#4f5d75" font-size="9" font-family="'Geist', sans-serif">Command you run</text>
+
+        <rect x="276" y="666" width="24" height="12" rx="2" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <text x="308" y="675" fill="#4f5d75" font-size="9" font-family="'Geist', sans-serif">Step</text>
+
+        <rect x="368" y="666" width="24" height="12" rx="2" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1.2"/>
+        <text x="400" y="675" fill="#4f5d75" font-size="9" font-family="'Geist', sans-serif">Focal: role guard</text>
+
+        <rect x="508" y="666" width="24" height="12" rx="2" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+        <text x="540" y="675" fill="#4f5d75" font-size="9" font-family="'Geist', sans-serif">CI job</text>
+
+        <rect x="604" y="666" width="24" height="12" rx="4" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.14)" stroke-width="0.8"/>
+        <text x="636" y="675" fill="#4f5d75" font-size="9" font-family="'Geist', sans-serif">Group</text>
+
+        <line x1="700" y1="672" x2="728" y2="672" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <text x="736" y="675" fill="#4f5d75" font-size="9" font-family="'Geist', sans-serif">Flow</text>
+
+        <line x1="796" y1="672" x2="824" y2="672" stroke="#bf4520" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+        <text x="832" y="675" fill="#4f5d75" font-size="9" font-family="'Geist', sans-serif">Superuser check</text>
+
+        <circle cx="944" cy="672" r="4" fill="#2d3142"/>
+        <text x="956" y="675" fill="#4f5d75" font-size="9" font-family="'Geist', sans-serif">Fork, runs in parallel</text>
+      </svg>
+    </div>
+
+    <p class="caption">Every run rebuilds the database from zero and checks the role it connects as before a single test executes, so a green run can only come from a role that row-level security actually applies to, such as app_user. CI runs the same suite against a real Postgres service, then runs it again as a superuser on purpose: that run has to be refused, which proves the guard still works. A second job scans for leaked secrets, risky code patterns and known-vulnerable dependencies.</p>
+  </div>
+</body>
+</html>
