@@ -11,14 +11,14 @@ export default async function setup(): Promise<void> {
   const report = await inspectRole(env.appUrl);
   const problems = problemsWith(report);
   if (problems.length > 0) {
-    const message =
-      `Refusing to run: ${report.role} ${problems.join(', ')}. ` +
-      'Row-level security would not apply to it, so passing tests would prove nothing. ' +
-      'Point APP_DATABASE_URL at the application role.';
-    const error = new Error(message);
-    // Vitest 5.0.5 crashes while source-mapping a stack thrown from global
-    // setup and hides the message. The message is the whole point here.
-    error.stack = message;
-    throw error;
+    // Print and stop the whole run here. Throwing instead makes Vitest 5
+    // report "No test files found" and garble the message, which hides the
+    // one thing the reader needs to know.
+    console.error(
+      `\nRefusing to run: ${report.role} ${problems.join(', ')}.\n` +
+        'Row-level security would not apply to it, so passing tests would prove nothing.\n' +
+        'Point APP_DATABASE_URL at the application role.\n',
+    );
+    process.exit(1);
   }
 }
