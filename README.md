@@ -4,6 +4,10 @@
 
 Postgres row-level security that fails closed, an append-only audit trail, and an integration test suite that proves both while connected as the real application role.
 
+![Demo: the app role, 19 tests passing, the suite refusing to run as a superuser, and psql as app_user](docs/demo.gif)
+
+<sub>Recorded with [VHS](https://github.com/charmbracelet/vhs) from [docs/demo.tape](docs/demo.tape); run `vhs docs/demo.tape` to regenerate it.</sub>
+
 ## The problem
 
 Multi-tenant apps that keep every customer in one Postgres database usually filter by organization in application code. One query that forgets the filter returns another customer's data.
